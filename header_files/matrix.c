@@ -44,12 +44,12 @@ Matrix* copyMatrix(Matrix* m) {
 }
 
 void initializeMatrix(Matrix *m) {
-    float limit = sqrt(6.0 / (m->row + m->col));
+    float limit = 0.1 * sqrt(6.0 / (m->row + m->col));
     srand(time(0));
-    for (int i = 0; i < m->row; i++) {
-        for (int j = 0; j < m->col; j++) {
-            float rand_val = (float)rand() / RAND_MAX; 
-            m->val[i][j] = (rand_val * 2 * limit) - limit; 
+    for (int i=0;i<m->row;i++) {
+        for (int j=0;j<m->col;j++) {
+            float rand_val = (float)rand()/RAND_MAX; 
+            m->val[i][j] = (double)(rand_val*2*limit)-limit; 
         }
     }
 }

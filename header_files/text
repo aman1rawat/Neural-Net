@@ -25,7 +25,10 @@ input[0]->val[0][0] = 1;
 
 ----------------------------------------------------------------------------------
 
-printf("Layer no: %d\n", (layer_no++));
+int layer_no=1;
+	
+	for(Layer *layer=network->layers; layer; layer=layer->next_layer){
+		printf("Layer no: %d\n", (layer_no++));
 		if(!strcmp(layer->activation, "sigmoid")){
 			printf("Activation function = sigmoid\n");
 		}
@@ -33,5 +36,17 @@ printf("Layer no: %d\n", (layer_no++));
 		printMatrix(layer->weight);
 		printf("Bias :\n");
 		printMatrix(layer->bias);
+	}
+
 
 -----------------------------------------------------------------------------------------
+
+printf("------------------------BEFORE FORWARD PASS---------------------------\n");
+	for(Layer *layer=network->layers; layer; layer=layer->next_layer){
+		printLayer(layer);
+	}
+	forwardPass(network, input[0]);
+	printf("------------------------AFTER FORWARD PASS---------------------------\n");
+	for(Layer *layer=network->layers; layer; layer=layer->next_layer){
+		printLayer(layer);
+	}

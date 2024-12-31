@@ -4,16 +4,18 @@
 #include<math.h>
 
 #include "NN.h"
+#include "NN_components.h"
 
 NeuralNet* buildNetwork(int input_size, char * loss_function){
     if(input_size<=0){
         printf("ERROR : invalid input size\n");
         return NULL;
     }
-	NeuralNet* network = (NeuralNet*)malloc(sizeof(NeuralNet));
+	NeuralNet *network = (NeuralNet*)malloc(sizeof(NeuralNet));
 	network->input_size = input_size;
 	network->layers = NULL;
 	network->tail_layer = NULL;
+    network->loss_function = (char*)malloc((strlen(loss_function)+1)*sizeof(char));
     strcpy(network->loss_function, loss_function);
 	return network;
 }
@@ -25,6 +27,8 @@ void addLayer(NeuralNet *network, int size, char *activation) {
     layer->output = NULL;
     layer->error = NULL;
 
+    layer->bias = createMatrix(size, 1);
+
     if(!network->layers){
         network->layers = network->tail_layer = layer;
         layer->prev_layer = layer->next_layer = NULL;
@@ -34,9 +38,11 @@ void addLayer(NeuralNet *network, int size, char *activation) {
         layer->prev_layer = network->tail_layer; 
         layer->next_layer = NULL;
         network->tail_layer->next_layer = layer;   
+        network->tail_layer = layer;
         layer->weight = createMatrix(layer->size, layer->prev_layer->size);
     }
 
+    layer->activation = (char*)malloc((strlen(activation)+1)*sizeof(char));
     strcpy(layer->activation, activation);
     
     initializeMatrix(layer->weight);
@@ -50,11 +56,14 @@ void forwardPass(NeuralNet *network, Matrix *input){
     }
 
     for(Layer *current_layer = network->layers; current_layer; current_layer=current_layer->next_layer){
+        if(current_layer->weighted_sum) freeMatrix(current_layer->weighted_sum);
+        if(current_layer->output) freeMatrix(current_layer->output);
+
         if(current_layer==network->layers){
             current_layer->weighted_sum = dot(current_layer->weight, input);
         }
         else{
-            current_layer->weighted_sum = dot(current_layer->weight, current_layer->prev_layer->weighted_sum);
+            current_layer->weighted_sum = dot(current_layer->weight, current_layer->prev_layer->output);
         }
 
         current_layer->weighted_sum = add(current_layer->weighted_sum, current_layer->bias);
@@ -62,7 +71,7 @@ void forwardPass(NeuralNet *network, Matrix *input){
     }
 }
 
-void backwardPropagate(NeuralNet *network, Matrix *output, double lr){
+void backwardPropagate(NeuralNet *network, Matrix *input, Matrix *output, double lr){
     //-------------------------------------first loop to get the error terms----------------------------------------------
     for(Layer *current_layer=network->tail_layer; current_layer; current_layer=current_layer->prev_layer){
         if(current_layer==network->tail_layer){
@@ -77,9 +86,19 @@ void backwardPropagate(NeuralNet *network, Matrix *output, double lr){
 
     //------------------------------second loop to get the weight and bias gradients--------------------------------------
     for(Layer *current_layer=network->tail_layer; current_layer; current_layer=current_layer->prev_layer){
-        Matrix *weight_gradient = dot(current_layer->error, transpose(current_layer->prev_layer->output));
-        scale(weight_gradient, lr);
-        Matrix *bias_gradient = scale(current_layer->error, lr);
+        Matrix *weight_gradient;
+        if(current_layer==network->layers){
+            weight_gradient = dot(current_layer->error, transpose(input));
+        }
+        else{
+            weight_gradient = dot(current_layer->error, transpose(current_layer->prev_layer->output));
+        }
+        Matrix *bias_gradient = copyMatrix(current_layer->error);
+
+        // clipGradients(weight_gradient, 1);
+        // clipGradients(bias_gradient, 1);
+        weight_gradient =  scale(weight_gradient, lr);
+        bias_gradient = scale(bias_gradient, lr);
         current_layer->weight = subtract(current_layer->weight, weight_gradient);
         current_layer->bias = subtract(current_layer->bias, bias_gradient);
 
@@ -96,8 +115,21 @@ void trainNetwork(NeuralNet *network, Matrix *input, Matrix *output, double lr) 
     }
 
     forwardPass(network, input);
-    backwardPropagate(network, output, lr);
+    network->loss = calculate_loss(network, output);
+    backwardPropagate(network, input, output, lr);
 
-    printf("Network successfully trained!\n");
+    // printf("Network successfully trained!\n");
     return;
+}
+
+void printLayer(Layer *layer){
+    printf("Weights:\n");
+    printMatrix(layer->weight);
+    printf("Bias:\n");
+    printMatrix(layer->bias);
+    printf("Weighted sum:\n");
+    printMatrix(layer->weighted_sum);
+    printf("Output:\n");
+    printMatrix(layer->output);
+    printf("---------------------------------\n");
 }

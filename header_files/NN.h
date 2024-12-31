@@ -7,7 +7,8 @@
 NeuralNet* buildNetwork(int input_size, char * loss_function);
 void addLayer(NeuralNet *net, int size, char * activation);
 void forwardPass(NeuralNet *network, Matrix *input);
-void backwardPropagate(NeuralNet *network, Matrix *output, double lr);
+void backwardPropagate(NeuralNet *network,Matrix *input, Matrix *output, double lr);
 void trainNetwork(NeuralNet *net, Matrix *input, Matrix *output, double lr);
+void printLayer(Layer *layer);
 
 #endif

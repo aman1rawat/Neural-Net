@@ -32,9 +32,10 @@ typedef struct{
 
 Matrix* activate(Layer *layer);
 Matrix* activationDerivative(Layer *layer);
-Matrix* loss(NeuralNet *network, Matrix *output);
+double calculate_loss(NeuralNet *network, Matrix *output);
 Matrix* lossDerivative(NeuralNet *network, Matrix *output);
 // Matrix* cost();
 // Matrix* costDerivative(Layer *tail_layer, Matrix *output);
+void clipGradients(Matrix *gradient, double threshold);
 
 #endif

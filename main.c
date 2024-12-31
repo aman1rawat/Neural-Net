@@ -26,14 +26,14 @@ int main(){
 	input[5]->val[0][0] = 6;
 	input[6]->val[0][0] = 7;
 	input[7]->val[0][0] = 8;
-	output[0]->val[0][0] = 2;
+	output[0]->val[0][0] = 1;
 	output[1]->val[0][0] = 4;
-	output[2]->val[0][0] = 6;
-	output[3]->val[0][0] = 8;
-	output[4]->val[0][0] = 10;
-	output[5]->val[0][0] = 12;
-	output[6]->val[0][0] = 14;
-	output[7]->val[0][0] = 16;
+	output[2]->val[0][0] = 9;
+	output[3]->val[0][0] = 16;
+	output[4]->val[0][0] = 25;
+	output[5]->val[0][0] = 36;
+	output[6]->val[0][0] = 49;
+	output[7]->val[0][0] = 64;
 
 	// for(int i=0;i<8;i++){
 	// 	input[i]->val[0][0] = (input[i]->val[0][0]-1)/7;
@@ -41,6 +41,9 @@ int main(){
 	// }
 
 	NeuralNet *network = buildNetwork(1, "MSE");
+	addLayer(network, 4, "sigmoid");
+	addLayer(network, 8, "sigmoid");
+	addLayer(network, 4, "sigmoid");
 	addLayer(network, 1, "linear");
 
 	for(int epoch=0;epoch<10000;epoch++){
